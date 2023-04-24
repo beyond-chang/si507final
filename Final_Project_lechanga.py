@@ -6,10 +6,11 @@
 import networkx as nx
 import requests
 import xmltodict
-import pprint as pp
 import json
 import matplotlib.pyplot as plt
-from networkx.readwrite import json_graph
+from prettytable import PrettyTable
+import matplotlib.pyplot as plt
+
 
 def url_to_dict(url):
     '''access the url, get the xml file, turn the xml file into dictionary
@@ -84,20 +85,197 @@ def interactive():
     Returns:
         None
     """
-    input1 = input('Enter a search term, or "exit" to quit: ')
-    if input1.lower().strip() != 'exit':
-        dat1 = categorize(search(input1))
-        print_result(dat1)
-        while True:
-            input2 = input('Enter a number for more info, or another search term, or exit: ')
-            if input2.lower().strip() == 'exit':
+    while True:
+        input1 = input('Select an option, or enter "exit" to quit: \n'
+                        'A. Enter a country name to get country code or enter a country code to get country name. \n'
+                        "B. Get a country's all import or export partners. \n"
+                        "C. Get the import and export facts between two countries. \n"
+                        "D. Get a country's top 5 import and export partners. \n"
+                        "E. Get a country's import or export piechart. \n")
+        if input1.lower().strip() == 'exit':
+            break
+        elif input1.lower().strip() == 'a':
+            interactive_a()
+        elif input1.lower().strip() == 'b':
+            interactive_b()
+        elif input1.lower().strip() == 'c':
+            interactive_c()
+        elif input1.lower().strip() == 'd':
+            interactive_d()
+        elif input1.lower().strip() == 'e':
+            interactive_e()
+        else:
+            print('Invalid input. Please try again.')
+
+def interactive_a():
+    """interactive option A.
+    Enter a country name to get country code or enter a country code to get country name.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
+    while True:
+        inputa1 = input('Please enter a country name or a country code, or enter "exit" to get back to upper menu: ')
+        if inputa1.lower().strip() == 'exit':
+            break
+        elif inputa1.strip().upper() in reporter_dict.keys():
+            print(f"{inputa1.strip().upper()} is the country code of '{reporter_dict[inputa1.strip().upper()]}'")
+            break
+        elif inputa1.strip().lower().title() in reverse_list.keys():
+            print(f"'{inputa1.strip().lower().title()}' has the country code {reverse_list[inputa1.strip().lower().title()]}")
+            break
+        else:
+            print('Sorry, the country name or country code is not listed in the reporter list, please try again.')
+
+def interactive_b():
+    """interactive option B.
+    Enter a country name or country code to get a country's import or export partners.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
+    while True:
+        inputb1 = input("Please enter 'im' for import, 'ex' for export, then the country code, seperate them with comma, or enter 'exit' to get back to upper menu: ")
+        if inputb1.lower().strip() == 'exit':
+            break
+        elif inputb1.split(',')[0].strip().lower() == 'im':
+            if inputb1.split(',')[1].strip().upper() in reporter_dict.keys():
+                listb = list(mprt_graph.successors(inputb1.split(',')[1].upper()))
+                listb1 = []
+                for code in listb:
+                    if code in reporter_dict.keys():
+                        listb1.append(reporter_dict[code])
+                print(f"The import partners of {reporter_dict[inputb1.split(',')[1].upper()]} are {listb1}")
                 break
             else:
-                try:
-                    launch_url(dat1, int(input2))
-                except ValueError:
-                    dat1 = categorize(search(input2))
-                    print_result(dat1)
+                print('Invalid input. Please try again.')
+        elif inputb1.split(',')[0].strip().lower() == 'ex':
+            if inputb1.split(',')[1].strip().upper() in reporter_dict.keys():
+                listb = list(xprt_graph.successors(inputb1.split(',')[1].upper()))
+                listb1 = []
+                for code in listb:
+                    if code in reporter_dict.keys():
+                        listb1.append(reporter_dict[code])
+                print(f"The export partners of {reporter_dict[inputb1.split(',')[1].upper()]} are {listb1}")
+                break
+        else:
+            print('Invalid input. Please try again.')
+
+def interactive_c():
+    """interactive option C.
+    Get the import and export facts between two countries.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
+    while True:
+        inputc1 = input("Please enter two country codes, seperate with comma, or enter 'exit' to get back to upper menu: ")
+        if inputc1.lower().strip() == 'exit':
+            break
+        elif inputb1.split(',')[0].upper() in reporter_dict.keys() and inputb1.split(',')[1].upper() in reporter_dict.keys():
+            try:
+                ima2b = mprt_graph.get_edge_data(inputb1.split(',')[0].upper(), inputb1.split(',')[1].upper())['weight']
+                imb2a = mprt_graph.get_edge_data(inputb1.split(',')[1].upper(), inputb1.split(',')[0].upper())['weight']
+                exa2b = xprt_graph.get_edge_data(inputb1.split(',')[0].upper(), inputb1.split(',')[1].upper())['weight']
+                exb2a = xprt_graph.get_edge_data(inputb1.split(',')[1].upper(), inputb1.split(',')[0].upper())['weight']
+                namea = reporter_dict[inputb1.split(',')[0].upper()]
+                nameb = reporter_dict[inputb1.split(',')[1].upper()]
+                print(f"{namea} has {ima2b} percent import from {nameb} and {exa2b} percent export to {nameb}, while {nameb} has {imb2a} percent import from {namea} and {exb2a} percent export to {namea}")
+            except:
+                print('Sorry, data is not valid for these two countries. Please try again. ')
+        else:
+            print('Invalid input. Please try again.')
+
+def interactive_d():
+    """interactive option D.
+    Get a country's top 5 import and export partners.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
+    while True:
+        inputd1 = input("Please enter a country code, or enter 'exit' to get back to upper menu: ")
+        if inputd1.lower().strip() == 'exit':
+            break
+        elif inputd1.strip().upper() in reporter_dict.keys():
+            dat = dict(xprt_graph[inputd1.strip().upper()])
+            sorted_dat = sorted(dat.items(), key=lambda x: x[1]['weight'], reverse=True)
+            table = PrettyTable(['Country', 'Percentage'])
+            for d in sorted_dat[:5]:
+                table.add_row([reporter_dict[d[0]], d[1]['weight']])
+            print("Export Data")
+            print(table)
+            dat1 = dict(mprt_graph[inputd1.strip().upper()])
+            sorted_dat1 = sorted(dat1.items(), key=lambda x: x[1]['weight'], reverse=True)
+            table1 = PrettyTable(['Country', 'Percentage'])
+            for d in sorted_dat1[:5]:
+                table1.add_row([reporter_dict[d[0]], d[1]['weight']])
+            print("Import Data")
+            print(table1)
+            break
+        else:
+            print('Invalid input. Please try again.')
+
+def interactive_e():
+    """interactive option E.
+    Get a country's import or export piechart.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
+    while True:
+        inpute1 = input("Please enter 'im' for import, 'ex' for export, then the country code, seperate them with comma, or enter 'exit' to get back to upper menu: ")
+        if inpute1.lower().strip() == 'exit':
+            break
+        elif inpute1.split(',')[1].strip().upper() in reporter_dict.keys() and inpute1.split(',')[0].strip().lower() == 'ex':
+            dat = dict(xprt_graph[inpute1.split(',')[1].strip().upper()])
+            sorted_dat = sorted(dat.items(), key=lambda x: x[1]['weight'], reverse=True)[:5]
+            sm = 0
+            new_list = []
+            for item in sorted_dat:
+                sm += item[1]['weight']
+                new_list.append((reporter_dict[item[0]], item[1]))
+            new_list.append(('Other', {'weight': 100-sm}))
+            labels = [x[0] for x in new_list]
+            values = [x[1]['weight'] for x in new_list]
+            fig, ax = plt.subplots()
+            ax.pie(values, labels=labels, autopct='%1.1f%%')
+            ax.set_title('Export Share Piechart')
+            plt.show()
+            break
+        elif inpute1.split(',')[1].strip().upper() in reporter_dict.keys() and inpute1.split(',')[0].strip().lower() == 'im':
+            dat = dict(mprt_graph[inpute1.split(',')[1].strip().upper()])
+            sorted_dat = sorted(dat.items(), key=lambda x: x[1]['weight'], reverse=True)[:5]
+            sm = 0
+            new_list = []
+            for item in sorted_dat:
+                sm += item[1]['weight']
+                new_list.append((reporter_dict[item[0]], item[1]))
+            new_list.append(('Other', {'weight': 100-sm}))
+            labels = [x[0] for x in new_list]
+            values = [x[1]['weight'] for x in new_list]
+            fig, ax = plt.subplots()
+            ax.pie(values, labels=labels, autopct='%1.1f%%')
+            ax.set_title('Import Share Piechart')
+            plt.show()
+            break
+        else:
+            print('Invalid input. Please try again.')
 
 
 if __name__ == "__main__":
@@ -113,6 +291,10 @@ if __name__ == "__main__":
     for item in countries["wits:datasource"]["wits:countries"]["wits:country"]:
         if item["@isreporter"] == "1" and item["@isgroup"] == "No":
             reporter_dict[item["wits:iso3Code"]] = item["wits:name"]
+
+    reverse_list = {}
+    for k,v in reporter_dict.items():
+        reverse_list[v] = k
 
     # loop through all reporters, get export(XPRT)/import(MPRT) partner shares for each coutry with each partner, use cache if possible
     if create_cache('xprtdata.json'):
@@ -194,5 +376,4 @@ if __name__ == "__main__":
         data = json_graph.node_link_data(mprt_graph)
         write_json('mprtgraph.json', data)
 
-
-
+    interactive()
