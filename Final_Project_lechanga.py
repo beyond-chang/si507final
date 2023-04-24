@@ -146,23 +146,23 @@ def interactive_b():
             break
         elif inputb1.split(',')[0].strip().lower() == 'im':
             if inputb1.split(',')[1].strip().upper() in reporter_dict.keys():
-                listb = list(mprt_graph.successors(inputb1.split(',')[1].upper()))
+                listb = list(mprt_graph.successors(inputb1.split(',')[1].strip().upper()))
                 listb1 = []
                 for code in listb:
                     if code in reporter_dict.keys():
                         listb1.append(reporter_dict[code])
-                print(f"The import partners of {reporter_dict[inputb1.split(',')[1].upper()]} are {listb1}")
+                print(f"The import partners of {reporter_dict[inputb1.split(',')[1].strip().upper()]} are {listb1}")
                 break
             else:
                 print('Invalid input. Please try again.')
         elif inputb1.split(',')[0].strip().lower() == 'ex':
             if inputb1.split(',')[1].strip().upper() in reporter_dict.keys():
-                listb = list(xprt_graph.successors(inputb1.split(',')[1].upper()))
+                listb = list(xprt_graph.successors(inputb1.split(',')[1].strip().upper()))
                 listb1 = []
                 for code in listb:
                     if code in reporter_dict.keys():
                         listb1.append(reporter_dict[code])
-                print(f"The export partners of {reporter_dict[inputb1.split(',')[1].upper()]} are {listb1}")
+                print(f"The export partners of {reporter_dict[inputb1.split(',')[1].strip().upper()]} are {listb1}")
                 break
         else:
             print('Invalid input. Please try again.')
@@ -181,15 +181,16 @@ def interactive_c():
         inputc1 = input("Please enter two country codes, seperate with comma, or enter 'exit' to get back to upper menu: ")
         if inputc1.lower().strip() == 'exit':
             break
-        elif inputb1.split(',')[0].upper() in reporter_dict.keys() and inputb1.split(',')[1].upper() in reporter_dict.keys():
+        elif inputc1.split(',')[0].strip().upper() in reporter_dict.keys() and inputc1.split(',')[1].strip().upper() in reporter_dict.keys():
             try:
-                ima2b = mprt_graph.get_edge_data(inputb1.split(',')[0].upper(), inputb1.split(',')[1].upper())['weight']
-                imb2a = mprt_graph.get_edge_data(inputb1.split(',')[1].upper(), inputb1.split(',')[0].upper())['weight']
-                exa2b = xprt_graph.get_edge_data(inputb1.split(',')[0].upper(), inputb1.split(',')[1].upper())['weight']
-                exb2a = xprt_graph.get_edge_data(inputb1.split(',')[1].upper(), inputb1.split(',')[0].upper())['weight']
-                namea = reporter_dict[inputb1.split(',')[0].upper()]
-                nameb = reporter_dict[inputb1.split(',')[1].upper()]
+                ima2b = mprt_graph.get_edge_data(inputc1.split(',')[0].strip().upper(), inputc1.split(',')[1].strip().upper())['weight']
+                imb2a = mprt_graph.get_edge_data(inputc1.split(',')[1].strip().upper(), inputc1.split(',')[0].strip().upper())['weight']
+                exa2b = xprt_graph.get_edge_data(inputc1.split(',')[0].strip().upper(), inputc1.split(',')[1].strip().upper())['weight']
+                exb2a = xprt_graph.get_edge_data(inputc1.split(',')[1].strip().upper(), inputc1.split(',')[0].strip().upper())['weight']
+                namea = reporter_dict[inputc1.split(',')[0].strip().upper()]
+                nameb = reporter_dict[inputc1.split(',')[1].strip().upper()]
                 print(f"{namea} has {ima2b} percent import from {nameb} and {exa2b} percent export to {nameb}, while {nameb} has {imb2a} percent import from {namea} and {exb2a} percent export to {namea}")
+                break
             except:
                 print('Sorry, data is not valid for these two countries. Please try again. ')
         else:
